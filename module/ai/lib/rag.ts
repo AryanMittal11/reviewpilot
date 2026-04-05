@@ -6,13 +6,20 @@ const genAI = new GoogleGenerativeAI(
 );
 
 export async function generateEmbedding(text: string) {
-  const model = genAI.getGenerativeModel({
-    model: "gemini-embedding-001", // ✅ THIS is the correct working model
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2-preview:embedContent?key=${process.env.GOOGLE_GENERATIVE_AI_API_KEY}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+          model: "models/gemini-embedding-2-preview",
+          content: { parts: [{ text }] },
+          outputDimensionality: 768
+      })
   });
-
-  const result = await model.embedContent(text);
-
-  return result.embedding.values;
+  const data = await response.json();
+  if (data.error) {
+      throw new Error(data.error.message || "Failed to generate embeddings");
+  }
+  return data.embedding.values;
 }
 
 export async function indexCodebase(repoId:string, files:{path:string; content:string}[]) {
