@@ -1,6 +1,6 @@
 "use client"
 import { signIn } from "@/lib/auth-client"
-import { GithubIcon } from "lucide-react"
+import { GithubIcon, Sparkles } from "lucide-react"
 import { useState } from "react"
 
 const LoginUI = () => {
@@ -19,65 +19,70 @@ const LoginUI = () => {
     }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-black via-black to-zinc-900 text-white dark flex">
-        {/* Left Section - Hero Content */}
-        <div className="flex-1 flex flex-col justify-center px-12 py-16">
-            <div className="max-w-lg">
-                {/* Logo */}
-                <div className="mb-16">
-                    <div className="inline-flex items-center gap-2 text-2xl font-bold">
-                        <div className="w-8 h-8 bg-primary rounded-full"/>
-                        <span>ReviewPilot</span>
-                    </div>
+    <div className="min-h-screen bg-background relative overflow-hidden flex items-center justify-center p-4">
+        {/* Background Effects */}
+        <div className="absolute top-0 left-0 w-full h-full bg-[url('/noise.svg')] opacity-[0.03] mix-blend-overlay pointer-events-none z-10"></div>
+        
+        {/* Animated Glows */}
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary/20 blur-[120px] animate-pulse pointer-events-none"></div>
+        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-secondary/30 blur-[120px] animate-pulse pointer-events-none" style={{ animationDelay: '2s' }}></div>
+
+        <div className="relative z-20 w-full max-w-6xl grid lg:grid-cols-2 gap-12 lg:gap-24 items-center">
+            
+            {/* Left side - Typography Hero */}
+            <div className="flex flex-col animate-in fade-in slide-in-from-left-12 duration-1000">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border/50 text-foreground text-xs font-bold uppercase tracking-widest w-fit mb-8 shadow-sm">
+                    <img src="/logo.png" alt="ReviewPilot" className="h-6 w-auto object-contain" />
+                    <span>ReviewPilot Platform</span>
                 </div>
-
-                {/* Main Content */}
-                <h1 className="text-5xl font-bold mb-6 leading-tight text-balance">
-                    Cut Code Review Time & Bugs in Half. <span className="block">Instantly</span>
+                
+                <h1 className="text-6xl sm:text-7xl lg:text-[6rem] leading-[0.9] font-black tracking-tighter mb-8">
+                    <span className="bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/60">Review</span><br />
+                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/50">Code</span><br />
+                    <span className="bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/30">Faster.</span>
                 </h1>
-
-                <p className="text-lg text-gray-400 leading-relaxed">
-                    Supercharge your team to ship faster with the most advanced AI code reviews.
+                
+                <p className="text-xl sm:text-2xl font-medium text-muted-foreground max-w-xl tracking-tight leading-relaxed">
+                    Supercharge your team's workflow with intelligent, automated code reviews that catch bugs before they merge.
                 </p>
             </div>
-        </div>
 
-        {/* Right Section - Login Form */}
-        <div className="flex-1 flex flex-col justify-center items-center px-12 py-16">
-            <div className="w-full max-w-sm">
-                <div className="mb-12">
-                    <h2 className="text-3xl font-bold mb-2">Welcome Back</h2>
-                    <p className="text-gray-400">Login using the following providers:</p>
-                </div>
-
-                {/* GitHub Login Button */}
-                <button
-                    onClick={handleGithubLogin}
-                    disabled={isLoading}
-                    className="w-full py-3 px-4 bg-primary text-black rounded-lg font-semibold hover:bg-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-3 mb-8"
-                >
-                    <GithubIcon size={20} />
-                    {isLoading ? "Signing in..." : "GitHub"}
-                </button>
-
-                {/* Footer Links */}
-                <div className="space-y-4 text-center text-sm text-gray-400">
-                    <div>
-                        New to ReviewPilot?{' '}
-                        <a href="#" className="text-primary hover:text-primary-foreground font-semibold">Sign Up</a>
+            {/* Right side - Login Bento Box */}
+            <div className="relative animate-in fade-in slide-in-from-right-12 duration-1000 delay-300">
+                <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent rounded-[3rem] blur-2xl transform scale-110"></div>
+                
+                <div className="relative bg-card/40 backdrop-blur-3xl border border-border/50 rounded-[3rem] p-8 sm:p-12 shadow-2xl overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[80px] pointer-events-none group-hover:bg-primary/10 transition-colors duration-1000"></div>
+                    
+                    <div className="relative z-10 flex flex-col items-center text-center">
+                        <div className="bg-transparent flex items-center justify-center mb-10 transform -rotate-2 group-hover:rotate-0 transition-transform duration-500 overflow-visible">
+                            <img src="/logo.png" alt="ReviewPilot Logo" className="h-32 w-auto object-contain drop-shadow-2xl" />
+                        </div>
+                        
+                        <h2 className="text-4xl font-black tracking-tight mb-2">Welcome Back</h2>
+                        <p className="text-muted-foreground font-medium text-lg mb-12">Login to access your dashboard</p>
+                        
+                        <button
+                            onClick={handleGithubLogin}
+                            disabled={isLoading}
+                            className="w-full relative group/btn"
+                        >
+                            <div className="absolute inset-0 bg-primary rounded-2xl blur opacity-40 group-hover/btn:opacity-60 transition-opacity duration-300"></div>
+                            <div className="relative flex items-center justify-center gap-4 w-full py-5 px-6 bg-foreground text-background rounded-2xl font-black text-lg tracking-wide uppercase hover:scale-[1.02] transition-all duration-300">
+                                <GithubIcon size={24} />
+                                {isLoading ? "Authenticating..." : "Continue with GitHub"}
+                            </div>
+                        </button>
+                        
+                        <div className="mt-12 space-y-4">
+                            <p className="text-sm font-medium text-muted-foreground">
+                                By continuing, you agree to our <a href="#" className="text-foreground hover:text-primary transition-colors underline decoration-border underline-offset-4">Terms of Service</a> and <a href="#" className="text-foreground hover:text-primary transition-colors underline decoration-border underline-offset-4">Privacy Policy</a>.
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <a href="#" className="text-primary hover:text-primary-foreground font-semibold">Self-Hosted Services</a>
-                    </div>
-                </div>
-
-                {/* Bottom Links */}
-                <div className="mt-12 pt-8 border-t border-gray-700 flex justify-center gap-4 text-xs text-gray-500">
-                    <a href="#" className="hover:text-gray-400">Terms of Use</a>
-                    <span>and</span>
-                    <a href="#" className="hover:text-gray-400">Privacy Policy</a>
                 </div>
             </div>
+            
         </div>
     </div>
   )

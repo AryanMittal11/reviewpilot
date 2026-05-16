@@ -2,11 +2,33 @@
 import React from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import { GitCommit, GitPullRequest, MessageSquare, GitBranch } from 'lucide-react'
+import { GitCommit, GitPullRequest, MessageSquare, GitBranch, ArrowUpRight, Sparkles } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { getDashboardStats, getMonthlyActivity } from '@/module/dashboard/actions'
 import ContributionGraph from '@/module/dashboard/components/contribution-graph'
 import { Spinner } from '@/components/ui/spinner'
+
+const BentoCard = ({ title, icon: Icon, value, description, isLoading, className }: any) => (
+  <div className={`group relative overflow-hidden rounded-3xl bg-card border border-border/50 p-6 md:p-8 hover:border-primary/50 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] hover:shadow-2xl hover:-translate-y-1 ${className}`}>
+    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+    <div className="relative z-10 h-full flex flex-col justify-between">
+      <div className="flex justify-between items-start mb-8">
+        <h3 className="text-muted-foreground font-semibold tracking-wide text-sm uppercase">{title}</h3>
+        <div className="p-3 bg-secondary/50 rounded-2xl group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500 text-foreground">
+          <Icon className="w-5 h-5" />
+        </div>
+      </div>
+      <div>
+        <div className="text-5xl lg:text-7xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/60 leading-none mb-4">
+          {isLoading ? "..." : value}
+        </div>
+        <p className="text-sm font-medium text-muted-foreground/80 flex items-center gap-2">
+          {description}
+        </p>
+      </div>
+    </div>
+  </div>
+)
 
 const MainPage = () => {
   const { data: stats, isLoading } = useQuery({
@@ -20,104 +42,128 @@ const MainPage = () => {
     queryFn: async () => await getMonthlyActivity(),
     refetchOnWindowFocus: false,
   })
+  
   return (
-    <div className='space-y-6'>
-      <div>
-        <h1 className='text-3xl font-bold tracking-tight'>Dashboard</h1>
-        <p className='text-muted-foreground'>Overview of your coding activity and AI reviews</p>
+    <div className='flex flex-col gap-6 md:gap-8'>
+      {/* Hero Section */}
+      <div className='flex flex-col mb-4 md:mb-8 animate-in fade-in slide-in-from-bottom-8 duration-1000'>
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border/50 text-foreground text-xs font-bold uppercase tracking-widest w-fit mb-6 uppercase">
+          <img src="/logo.png" alt="ReviewPilot" className="h-5 w-auto object-contain" />
+          <span>Overview</span>
+        </div>
+        <h1 className='text-6xl md:text-[5rem] lg:text-[7rem] leading-[0.9] font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-foreground via-foreground to-foreground/30'>
+          Activity <br className="hidden md:block"/> Insights.
+        </h1>
+        <p className='text-muted-foreground font-semibold text-xl md:text-2xl max-w-2xl mt-6 tracking-tight'>
+          A real-time overview of your coding velocity, pull requests, and AI-powered reviews.
+        </p>
       </div>
 
-      <div className='grid gap-4 md:grid-cols-4'>
-        <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>Total Repositories</CardTitle>
-            <GitBranch className='h-4 w-4 text-muted-foreground' />
-          </CardHeader>
-          <CardContent>
-            <div className='text-2xl font-bold'>{isLoading ? "..." : stats?.totalRepos || 0}</div>
-            <p className='text-xs text-muted-foreground'>Connected repositories</p>
-          </CardContent>
-        </Card>
+      {/* Bento Grid */}
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300 fill-mode-both'>
+        <BentoCard 
+          title="Repositories" 
+          icon={GitBranch} 
+          value={stats?.totalRepos || 0} 
+          description="Active tracked projects" 
+          isLoading={isLoading} 
+          className="col-span-1 md:col-span-2 lg:col-span-1"
+        />
+        <BentoCard 
+          title="Total Commits" 
+          icon={GitCommit} 
+          value={(stats?.totalCommits || 0).toLocaleString()} 
+          description="Across all time" 
+          isLoading={isLoading}
+          className="col-span-1 md:col-span-2 lg:col-span-2 bg-gradient-to-tl from-card to-card hover:to-primary/5"
+        />
+        <BentoCard 
+          title="Pull Reqs" 
+          icon={GitPullRequest} 
+          value={stats?.totalPRs || 0} 
+          description="Merged successfully" 
+          isLoading={isLoading} 
+          className="col-span-1 md:col-span-1 lg:col-span-1"
+        />
+        <BentoCard 
+          title="AI Reviews" 
+          icon={MessageSquare} 
+          value={stats?.totalReviews || 0} 
+          description="Generated by ReviewPilot" 
+          isLoading={isLoading} 
+          className="col-span-1 md:col-span-1 lg:col-span-1"
+        />
+        
+        {/* Contribution Graph in Bento Box */}
+        <div className="col-span-1 md:col-span-2 lg:col-span-3 bg-card border border-border/50 rounded-3xl p-6 md:p-10 relative overflow-hidden group">
+          <div className="absolute top-[-50%] right-[-10%] w-[80%] h-[150%] bg-primary/5 blur-[80px] rounded-full pointer-events-none group-hover:bg-primary/10 transition-colors duration-1000"></div>
+          <div className="relative z-10 h-full flex flex-col">
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-xl md:text-2xl font-bold tracking-tight">Contribution Graph</h3>
+              <ArrowUpRight className="w-6 h-6 text-muted-foreground opacity-50" />
+            </div>
+            <div className="flex-1 flex items-center justify-center bg-background/30 rounded-2xl border border-border/20 p-2 md:p-6 overflow-x-auto">
+                <ContributionGraph />
+            </div>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>Total Commits</CardTitle>
-            <GitCommit className='h-4 w-4 text-muted-foreground' />
-          </CardHeader>
-          <CardContent>
-            <div className='text-2xl font-bold'>{isLoading ? "..." : (stats?.totalCommits || 0).toLocaleString()}</div>
-            <p className='text-xs text-muted-foreground'>In the last year</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>Pull Requests</CardTitle>
-            <GitPullRequest className='h-4 w-4 text-muted-foreground' />
-          </CardHeader>
-          <CardContent>
-            <div className='text-2xl font-bold'>{isLoading ? "..." : stats?.totalPRs || 0}</div>
-            <p className='text-xs text-muted-foreground'>All time</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>AI Reviews</CardTitle>
-            <MessageSquare className='h-4 w-4 text-muted-foreground' />
-          </CardHeader>
-          <CardContent>
-            <div className='text-2xl font-bold'>{isLoading ? "..." : stats?.totalReviews || 0}</div>
-            <p className='text-xs text-muted-foreground'>Generated reviews</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Contribution Activity</CardTitle>
-          <CardDescription>Visualizing your coding frequency over the last year</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ContributionGraph />
-        </CardContent>
-      </Card>
-
-      <div className='grid gap-4 md:grid-cols-2'>
-        <Card className='col-span-2'>
-          <CardHeader>
-            <CardTitle>Activity Overview</CardTitle>
-            <CardDescription>Monthly breakdown of commits, PRs, and reviews (last 6 months)</CardDescription>
-          </CardHeader>
-
-          <CardContent>
+        {/* Analytics Chart in Bento Box */}
+        <div className="col-span-1 md:col-span-2 lg:col-span-4 bg-card border border-border/50 rounded-3xl p-6 md:p-10 relative group">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h3 className="text-2xl md:text-3xl font-black tracking-tight">Analytics Overview</h3>
+              <p className="text-muted-foreground font-medium mt-1">Monthly breakdown (last 6 months)</p>
+            </div>
+          </div>
+          
+          <div className="h-[400px] w-full pt-4">
             {
               isLoadingActivity ? (
-                <div className='h-80 w-full flex items-center justify-center'>
+                <div className='w-full h-full flex items-center justify-center rounded-2xl bg-background/30 border border-border/20'>
                   <Spinner />
                 </div>
               ) : (
-                <div className='h-80 w-full'>
-                  <ResponsiveContainer width={"100%"} height={"100%"}>
-                    <BarChart data={monthlyActivity || []}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip 
-                        contentStyle={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}
-                        itemStyle={{ color: 'var(--foreground)' }}
-                      />
-                      <Legend />
-                      <Bar dataKey="commits" name="Commits" fill='#3b82f6' radius={[4, 4, 0, 0]}/>
-                      <Bar dataKey="prs" name="Pull Requests" fill='#8b5cf6' radius={[4, 4, 0, 0]}/>
-                      <Bar dataKey="reviews" name="AI Reviews" fill='#10b981' radius={[4, 4, 0, 0]}/>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                <ResponsiveContainer width={"100%"} height={"100%"}>
+                  <BarChart data={monthlyActivity || []} margin={{ top: 20, right: 0, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="var(--border)" opacity={0.4} />
+                    <XAxis 
+                      dataKey="name" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fill: 'var(--foreground)', opacity: 0.6, fontSize: 13, fontWeight: 600 }} 
+                      dy={16}
+                    />
+                    <YAxis 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fill: 'var(--foreground)', opacity: 0.6, fontSize: 13, fontWeight: 600 }}
+                    />
+                    <Tooltip 
+                      cursor={{ fill: 'var(--secondary)', opacity: 0.5 }}
+                      contentStyle={{ 
+                        backgroundColor: 'var(--card)', 
+                        borderColor: 'transparent',
+                        borderRadius: '16px',
+                        padding: '16px',
+                        boxShadow: '0 20px 40px -10px rgba(0,0,0,0.4)',
+                      }}
+                      itemStyle={{ color: 'var(--foreground)', fontWeight: 700, paddingTop: '4px' }}
+                    />
+                    <Legend 
+                      wrapperStyle={{ paddingTop: '30px' }}
+                      iconType="circle"
+                      iconSize={10}
+                    />
+                    <Bar dataKey="commits" name="Commits" fill='#3b82f6' radius={[8, 8, 8, 8]} barSize={24} />
+                    <Bar dataKey="prs" name="Pull Requests" fill='#8b5cf6' radius={[8, 8, 8, 8]} barSize={24} />
+                    <Bar dataKey="reviews" name="AI Reviews" fill='#64748b' radius={[8, 8, 8, 8]} barSize={24} />
+                  </BarChart>
+                </ResponsiveContainer>
               )
             }
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   )
