@@ -1,6 +1,6 @@
 "use server";
 import {auth} from "@/lib/auth";
-import { getRemainingLimits, updateUserTier } from "../lib/subscription";
+import { getRemainingLimits, updateUserTier, updatePolarCustomerId } from "../lib/subscription";
 import { headers } from "next/headers";
 import { polarClient } from "../config/polar";
 import prisma from "@/lib/db";
@@ -78,14 +78,35 @@ export async function syncSubscriptionStatus() {
         where: { id: session.user.id }
     });
 
-    if (!user || !user.polarCustomerId) {
-        return { success: false, message: "No Polar customer ID found" };
+    if (!user) {
+        return { success: false, message: "No user found" };
+    }
+
+    let polarCustomerId = user.polarCustomerId;
+
+    if (!polarCustomerId) {
+        try {
+            // Try to find the customer in Polar by email if we don't have the ID saved locally (e.g. webhook failed or running locally without ngrok)
+            const customers = await polarClient.customers.list({
+                email: user.email,
+            });
+            
+            if (customers.result?.items && customers.result.items.length > 0) {
+                polarCustomerId = customers.result.items[0].id;
+                await updatePolarCustomerId(user.id, polarCustomerId);
+            } else {
+                return { success: false, message: "No Polar customer ID found" };
+            }
+        } catch (error) {
+            console.error("Failed to fetch Polar customer by email:", error);
+            return { success: false, message: "No Polar customer ID found" };
+        }
     }
 
     try {
         // Fetch subscriptions from Polar
         const result = await polarClient.subscriptions.list({
-            customerId: user.polarCustomerId,
+            customerId: polarCustomerId,
         });
 
         const subscriptions = result.result?.items || [];
