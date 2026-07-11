@@ -10,6 +10,7 @@ export async function reviewPullRequest(
     repo: string,
     prNumber: number
 ) {
+    console.log("reviewPullRequest started", new Date().toISOString());
     try {
         const repository = await prisma.repository.findFirst({
             where: {
@@ -47,7 +48,9 @@ export async function reviewPullRequest(
 
         const token = githubAccount.accessToken
 
-        const { title } = await getPullRequestDiff(token, owner, repo, prNumber)
+        console.log("Before inngest.send", new Date().toISOString());
+
+        // const { title } = await getPullRequestDiff(token, owner, repo, prNumber)
 
         await inngest.send({
             name: "pr.review.requested",
@@ -58,6 +61,8 @@ export async function reviewPullRequest(
                 userId: repository.user.id
             }
         })
+
+        console.log("After inngest.send", new Date().toISOString());
 
         await incrementReviewCount(repository.user.id, repository.id)
 
