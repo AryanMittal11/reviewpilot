@@ -63,7 +63,11 @@ export async function getDashboardStats() {
         const {data:user} = await octokit.rest.users.getAuthenticated()
 
         // TODO: FETCH TOTAL CONNECTED REPO FROM DB;
-        const totalRepos = 30;
+        const totalRepos = await prisma.repository.count({
+            where:{
+                userId:session.user.id
+            }
+        });
 
         const calendar = await fetchUserContribution(token, user.login);
         const totalCommits = calendar?.totalContributions || 0;
@@ -77,7 +81,13 @@ export async function getDashboardStats() {
         const totalPRs = prs.total_count
 
         // TODO: COUNT AI REVIEWS FROM DATABASE
-        const totalReviews = 44;
+        const totalReviews = await prisma.review.count({
+            where: {
+                repository: {
+                    userId: session.user.id,
+                },
+            },
+        });
 
         return {
             totalCommits,
@@ -160,31 +170,27 @@ export async function getMonthlyActivity() {
 
         // TODO: REVIEWS'S REAL DATA
 
-        const generateSampleReviews = () => {
-            const sampleReviews = [];
-            const now = new Date();
+        // Fetch reviews from the database for the last 6 months
+        const reviews = await prisma.review.findMany({
+            where: {
+                createdAt: {
+                    gte: sixMonthsAgo,
+                },
+                repository: {
+                    userId: session.user.id,
+                },
+            },
+            select: {
+                createdAt: true,
+            },
+        });
 
-            // Generate random reviews over the past 6 months
-            for (let i = 0; i < 45; i++) {
-                const randomDaysAgo = Math.floor(Math.random() * 180);
-                const reviewDate = new Date(now);
-                reviewDate.setDate(reviewDate.getDate() - randomDaysAgo);
-
-                sampleReviews.push({
-                    createdAt: reviewDate,
-                });
-            }
-
-            return sampleReviews;
-        }
-
-        const reviews = generateSampleReviews()
         reviews.forEach((review) => {
             const monthKey = monthNames[review.createdAt.getMonth()];
             if (monthlyData[monthKey]) {
                 monthlyData[monthKey].reviews += 1;
             }
-        })
+        });
 
         const { data: prs } = await octokit.rest.search.issuesAndPullRequests({
             q: `author:${user.login} type:pr created:>${

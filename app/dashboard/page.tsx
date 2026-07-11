@@ -62,7 +62,7 @@ const MainPage = () => {
       {/* Bento Grid */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300 fill-mode-both'>
         <BentoCard 
-          title="Repositories" 
+          title="Connected Repositories" 
           icon={GitBranch} 
           value={stats?.totalRepos || 0} 
           description="Active tracked projects" 

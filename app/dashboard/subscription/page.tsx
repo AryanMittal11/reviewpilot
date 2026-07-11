@@ -26,7 +26,7 @@ const PLAN_FEATURES = {
         { name: "Unlimited repositories", included: true },
         { name: "Unlimited reviews", included: true },
         { name: "Advanced code reviews", included: true },
-        { name: "Email support", included: true },
+        { name: "Community support", included: true },
         { name: "Advanced analytics", included: true },
         { name: "Priority support", included: true },
     ]
