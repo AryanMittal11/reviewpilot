@@ -83,35 +83,49 @@ export async function syncSubscriptionStatus() {
     }
 
     let polarCustomerId = user.polarCustomerId;
-
-    if (!polarCustomerId) {
-        try {
-            // Try to find the customer in Polar by email if we don't have the ID saved locally (e.g. webhook failed or running locally without ngrok)
-            const customers = await polarClient.customers.list({
-                email: user.email,
-            });
-            
-            if (customers.result?.items && customers.result.items.length > 0) {
-                polarCustomerId = customers.result.items[0].id;
-                await updatePolarCustomerId(user.id, polarCustomerId);
-            } else {
-                return { success: false, message: "No Polar customer ID found" };
-            }
-        } catch (error) {
-            console.error("Failed to fetch Polar customer by email:", error);
-            return { success: false, message: "No Polar customer ID found" };
-        }
-    }
+    let subscriptions: any[] = [];
+    let activeCustomerFound = false;
 
     try {
-        // Fetch subscriptions from Polar
-        const result = await polarClient.subscriptions.list({
-            customerId: polarCustomerId,
+        // Find all customers with this email
+        const customersResp = await polarClient.customers.list({
+            email: user.email,
         });
 
-        const subscriptions = result.result?.items || [];
+        const customers = customersResp.result?.items || [];
+        
+        // Loop through all customers to find one with an active subscription
+        for (const customer of customers) {
+            const result = await polarClient.subscriptions.list({
+                customerId: customer.id,
+            });
+            const subs = result.result?.items || [];
+            
+            if (subs.some(sub => sub.status === 'active')) {
+                subscriptions = subs;
+                polarCustomerId = customer.id;
+                activeCustomerFound = true;
+                break;
+            }
+            
+            // If no active, but has subscriptions, store them just in case (we prefer active, but take the latest otherwise)
+            if (!activeCustomerFound && subs.length > 0) {
+                subscriptions = subs;
+                polarCustomerId = customer.id;
+            }
+        }
 
-        // Find the most relevant subscription (active or most recent)
+        // Update the customer ID in DB if it changed
+        if (polarCustomerId && polarCustomerId !== user.polarCustomerId) {
+            await updatePolarCustomerId(user.id, polarCustomerId);
+        }
+
+    } catch (error) {
+        console.error("Failed to sync subscriptions:", error);
+        return { success: false, error: "Failed to sync with Polar" };
+    }
+
+    if (subscriptions.length > 0) {
         const activeSub = subscriptions.find((sub: any) => sub.status === 'active');
         const latestSub = subscriptions[0]; // Assuming API returns sorted or we should sort
 
@@ -119,18 +133,13 @@ export async function syncSubscriptionStatus() {
             await updateUserTier(user.id, "PRO", "ACTIVE", activeSub.id);
             return { success: true, status: "ACTIVE" };
         } else if (latestSub) {
-            // If latest is canceled/expired
             const status = latestSub.status === 'canceled' ? 'CANCELED' : 'EXPIRED';
-            // Only downgrade if we are sure it's not active
             if (latestSub.status !== 'active') {
                 await updateUserTier(user.id, "FREE", status, latestSub.id);
             }
             return { success: true, status };
         }
-
-        return { success: true, status: "NO_SUBSCRIPTION" };
-    } catch (error) {
-        console.error("Failed to sync subscription:", error);
-        return { success: false, error: "Failed to sync with Polar" };
     }
+
+    return { success: true, status: "NO_SUBSCRIPTION" };
 }
