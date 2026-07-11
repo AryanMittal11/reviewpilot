@@ -315,7 +315,7 @@ export default function SubscriptionPage() {
                             )}
                         </div>
                         <div className="mb-10">
-                            <span className="text-5xl md:text-6xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/60">$99.99</span>
+                            <span className="text-5xl md:text-6xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/60">₹99.99</span>
                             <span className="text-muted-foreground font-bold tracking-tight ml-2">/month</span>
                         </div>
                         
